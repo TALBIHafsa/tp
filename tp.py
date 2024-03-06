@@ -1,6 +1,12 @@
+# streamlit: run with streamlit run <filename>
+# pip install openpyxl==3.1.2
+# pip install xlrd==2.0.1
+# pip install pandas==1.3.3
+# pip install streamlit==0.85.1
 import streamlit as st
 import pandas as pd
 import copy
+
 
 # Function to calculate the total distance of a tour
 def total_distance(tour, distance_matrix):

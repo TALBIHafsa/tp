@@ -1,68 +1,80 @@
 import streamlit as st
 import pandas as pd
-import copy
-import subprocess
+import numpy as np
 
-# Install required libraries using subprocess
-try:
-    subprocess.run(["pip", "install", "openpyxl==3.1.2"])
-    subprocess.run(["pip", "install", "xlrd==2.0.1"])
-except Exception as e:
-    st.error(f"Error installing dependencies: {e}")
-    st.stop()
 
-# Function to calculate the total distance of a tour
-def total_distance(tour, distance_matrix):
-    total = 0
-    for i in range(len(tour) - 1):
-        j = i + 1
-        total += distance_matrix[tour[i]][tour[j]]
-    total += distance_matrix[tour[0]][tour[-1]]  # Add distance from the last to the first point
-    return total
+def read_excel_file(file_path):
+    """
+    Reads the distance matrix from an uploaded Excel file.
 
-# Function to implement the 2-opt swap
-def two_opt_swap(tour, i, j):
-    new_tour = copy.deepcopy(tour)
-    sub_tour = new_tour[i:j + 1]
-    sub_tour.reverse()
-    new_tour[i:j + 1] = sub_tour
-    return new_tour
+    Args:
+        file_path (str): Path to the uploaded Excel file.
+
+    Returns:
+        tuple: A tuple containing the distance matrix (2D array) and city names (list).
+
+    Raises:
+        FileNotFoundError: If the specified file is not found.
+    """
+
+    try:
+        df = pd.read_excel(file_path, index_col=0)
+        return df.values, df.index.tolist()
+    except FileNotFoundError:
+        st.error("Error: File not found. Please upload a valid Excel file.")
+        return None, None
+
+
+def la_plus_forte_descente_2_echanges(distances):
+    """
+    Apply the 2-opt algorithm to find the best route.
+    """
+    n = len(distances)
+    # Initialize the current route randomly
+    current_route = np.random.permutation(n)
+    best_distance = calculate_distance(current_route, distances)
+
+    improvement = True
+    while improvement:
+        improvement = False
+        for i in range(n):
+            for j in range(i + 2, n + (i > 0)):
+                new_route = current_route.copy()
+                new_route[i:(j % n) + 1] = list(reversed(current_route[i:(j % n) + 1]))
+                new_distance = calculate_distance(new_route, distances)
+                if new_distance < best_distance:
+                    current_route = new_route
+                    best_distance = new_distance
+                    improvement = True
+
+    return current_route, best_distance
+def calculate_distance(route, distances):
+    """
+    Calculate the total distance of a route.
+    """
+    total_distance = 0
+    for i in range(len(route) - 1):
+        total_distance += distances[route[i], route[i + 1]]
+    return total_distance
+
 
 # Streamlit app
-st.title("2-Opt Algorithm for Tour Optimization")
+st.title("Tour Optimization App")
 
-# File uploader for Excel file
-uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
+# Option 1: Upload an Excel file
+uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
 if uploaded_file is not None:
-    # Read the Excel file
-    try:
-        df = pd.read_excel(uploaded_file)
-    except Exception as e:
-        st.error(f"Error reading Excel file: {e}")
-        st.stop()
+    # Read the distance matrix and city names (if file uploaded)
+    distance_matrix, city_names = read_excel_file(uploaded_file)
 
-    st.subheader("Distance Matrix")
-    st.table(df)
+    if distance_matrix is not None:
+        # Run the optimization algorithm if the file is valid
+        best_route, best_distance = la_plus_forte_descente_2_echanges(distance_matrix)
 
-    # Run button to trigger optimization
-    if st.button("Optimize Tour"):
-        # Default initial tour
-        initial_tour = [i for i in range(len(df))]
-
-        # Main optimization loop
-        improved = True
-        while improved:
-            improved = False
-            for i in range(1, len(initial_tour) - 2):
-                for j in range(i + 1, len(initial_tour) - 1):
-                    new_tour = two_opt_swap(initial_tour, i, j)
-                    if total_distance(new_tour, df.values.tolist()) < total_distance(initial_tour, df.values.tolist()):
-                        initial_tour = new_tour
-                        improved = True
-
-        # Display results
-        st.subheader("Optimized Tour")
-        st.write(" ".join(map(str, initial_tour)))
-        st.subheader("Total Distance")
-        st.write(total_distance(initial_tour, df.values.tolist()))
+        st.header("Results")
+        st.subheader("Optimal Route")
+        st.write(" -> ".join([city_names[i] for i in best_route]))
+        st.write(best_distance)
+else:
+    st.info("Please upload an Excel file containing the distance matrix.")

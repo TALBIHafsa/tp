@@ -1,50 +1,45 @@
-import streamlit as st
-import pandas as pd
-import math
+import copy
 
-def distance_between(a, b):
-    return math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+# Define the new distance array for 5 points
+new_distance_matrix = [
+    [0, 12, 8, 19, 6],
+    [12, 0, 21, 14, 28],
+    [8, 21, 0, 25, 10],
+    [19, 14, 25, 0, 16],
+    [6, 28, 10, 16, 0]
+]
 
-def calculate_distance(route):
-    total_distance = 0
-    for i in range(len(route) - 1):
-        total_distance += distance_between(route[i], route[i+1])
-    return total_distance
+# Function to calculate the total distance of a tour
+def total_distance(tour):
+    total = 0
+    for i in range(len(tour) - 1):
+        j = i + 1
+        total += new_distance_matrix[tour[i]][tour[j]]
+    total += new_distance_matrix[tour[0]][tour[-1]]  # Add distance from last to first point
+    return total
 
-def two_opt(route):
-    best_route = route
-    improved = True
-    while improved:
-        improved = False
-        for i in range(1, len(route) - 1):
-            for j in range(i + 1, len(route)):
-                new_route = best_route[:i] + best_route[i:j][::-1] + best_route[j:]
-                if calculate_distance(new_route) < calculate_distance(best_route):
-                    best_route = new_route
-                    improved = True
-    return best_route
+# Function to implement the 2-opt swap
+def two_opt_swap(tour, i, j):
+    new_tour = copy.deepcopy(tour)
+    sub_tour = new_tour[i:j + 1]
+    sub_tour.reverse()
+    new_tour[i:j + 1] = sub_tour
+    return new_tour
 
-def main():
-    st.title("2-Opt TSP Solver")
+# Initial tour (can be any order)
+initial_tour = [0, 1, 2, 3, 4]
 
-    # Input coordinates using a Streamlit DataFrame
-    st.header("Enter Coordinates:")
-    df = pd.DataFrame(columns=['X', 'Y'])
-    for i in range(5):  # Change this number based on your number of points
-        x = st.number_input(f"Point {i+1} - X:", value=0.0)
-        y = st.number_input(f"Point {i+1} - Y:", value=0.0)
-        df = df.append(pd.Series({'X': x, 'Y': y}), ignore_index=True)
+# Main optimization loop
+improved = True
+while improved:
+    improved = False
+    for i in range(1, len(initial_tour) - 2):
+        for j in range(i + 1, len(initial_tour) - 1):
+            new_tour = two_opt_swap(initial_tour, i, j)
+            if total_distance(new_tour) < total_distance(initial_tour):
+                initial_tour = new_tour
+                improved = True
 
-    # Convert DataFrame to a list of tuples
-    route = list(zip(df['X'], df['Y']))
-
-    # Optimize the route
-    optimized_route = two_opt(route)
-
-    # Display the optimized route on the map
-    st.header("Optimized Route:")
-    st.map(optimized_route)
-
-if __name__ == "__main__":
-    main()
-
+# Print the optimized tour and its total distance
+print("Optimized tour:", initial_tour)
+print("Total distance:", total_distance(initial_tour))

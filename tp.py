@@ -1,12 +1,15 @@
-# streamlit: run with streamlit run <filename>
-# pip install openpyxl==3.1.2
-# pip install xlrd==2.0.1
-# pip install pandas==1.3.3
-# pip install streamlit==0.85.1
 import streamlit as st
 import pandas as pd
 import copy
+import subprocess
 
+# Install required libraries using subprocess
+try:
+    subprocess.run(["pip", "install", "openpyxl==3.1.2"])
+    subprocess.run(["pip", "install", "xlrd==2.0.1"])
+except Exception as e:
+    st.error(f"Error installing dependencies: {e}")
+    st.stop()
 
 # Function to calculate the total distance of a tour
 def total_distance(tour, distance_matrix):
@@ -14,7 +17,7 @@ def total_distance(tour, distance_matrix):
     for i in range(len(tour) - 1):
         j = i + 1
         total += distance_matrix[tour[i]][tour[j]]
-    total += distance_matrix[tour[0]][tour[-1]]  # Add distance from last to first point
+    total += distance_matrix[tour[0]][tour[-1]]  # Add distance from the last to the first point
     return total
 
 # Function to implement the 2-opt swap

@@ -1,7 +1,16 @@
 import streamlit as st
+import subprocess
+
+# Ensure 'openpyxl' is installed
+try:
+    subprocess.run(["pip", "install", "openpyxl"])
+except Exception as e:
+    raise ImportError(f"Error installing 'openpyxl': {e}")
+
+# Now import the required libraries
+import streamlit as st
 import pandas as pd
 import copy
-import subprocess
 
 # Function to attempt installing the required libraries
 @st.cache

@@ -44,3 +44,7 @@ def main():
     # Display the optimized route on the map
     st.header("Optimized Route:")
     st.map(optimized_route)
+
+if __name__ == "__main__":
+    main()
+

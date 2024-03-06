@@ -33,7 +33,7 @@ def main():
     for i in range(5):  # Change this number based on your number of points
         x = st.number_input(f"Point {i+1} - X:", value=0.0)
         y = st.number_input(f"Point {i+1} - Y:", value=0.0)
-        df = df.append({'X': x, 'Y': y}, ignore_index=True)
+        df = df.append(pd.Series({'X': x, 'Y': y}), ignore_index=True)
 
     # Convert DataFrame to a list of tuples
     route = list(zip(df['X'], df['Y']))
@@ -47,3 +47,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

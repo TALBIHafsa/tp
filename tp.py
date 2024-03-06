@@ -3,8 +3,8 @@ import pandas as pd
 import copy
 import subprocess
 
-subprocess.run(["pip", "install", "xlrd"])
-
+# Ensure required libraries are installed
+subprocess.run(["pip", "install", "xlrd", "openpyxl"])
 
 # Function to calculate the total distance of a tour
 def total_distance(tour, distance_matrix):
@@ -30,9 +30,15 @@ st.title("2-Opt Algorithm for Tour Optimization")
 uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
-    # Read distance matrix from Excel file
-    df = pd.read_excel(uploaded_file, index_col=0, engine=['xlrd', 'openpyxl'])
-    distance_matrix = df.values.tolist()
+    try:
+        # Attempt to read with 'xlrd'
+        df = pd.read_excel(uploaded_file, index_col=0, engine='xlrd')
+    except ImportError:
+        # If 'xlrd' fails, try 'openpyxl'
+        try:
+            df = pd.read_excel(uploaded_file, index_col=0, engine='openpyxl')
+        except ImportError:
+            st.error("Error: Both 'xlrd' and 'openpyxl' engines are unavailable.")
 
     st.subheader("Distance Matrix")
     st.table(df)
@@ -40,7 +46,7 @@ if uploaded_file is not None:
     # Run button to trigger optimization
     if st.button("Optimize Tour"):
         # Default initial tour
-        initial_tour = [i for i in range(len(distance_matrix))]
+        initial_tour = [i for i in range(len(df))]
 
         # Main optimization loop
         improved = True
@@ -49,7 +55,7 @@ if uploaded_file is not None:
             for i in range(1, len(initial_tour) - 2):
                 for j in range(i + 1, len(initial_tour) - 1):
                     new_tour = two_opt_swap(initial_tour, i, j)
-                    if total_distance(new_tour, distance_matrix) < total_distance(initial_tour, distance_matrix):
+                    if total_distance(new_tour, df.values.tolist()) < total_distance(initial_tour, df.values.tolist()):
                         initial_tour = new_tour
                         improved = True
 
@@ -57,4 +63,4 @@ if uploaded_file is not None:
         st.subheader("Optimized Tour")
         st.write(" ".join(map(str, initial_tour)))
         st.subheader("Total Distance")
-        st.write(total_distance(initial_tour, distance_matrix))
+        st.write(total_distance(initial_tour, df.values.tolist()))

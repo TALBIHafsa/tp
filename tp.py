@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
 import copy
+import subprocess
+
+subprocess.run(["pip", "install", "xlrd"])
+
 
 # Function to calculate the total distance of a tour
 def total_distance(tour, distance_matrix):

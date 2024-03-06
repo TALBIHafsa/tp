@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 import copy
 
+# Install required libraries using script_runner
+libs_installed = st.script_runner.install_pypi_package("xlrd==2.0.1")
+libs_installed &= st.script_runner.install_pypi_package("openpyxl==3.1.2")
+
+if not libs_installed:
+    st.error("Error installing libraries. Please check the logs for more information.")
+    st.stop()
+
 # Function to calculate the total distance of a tour
 def total_distance(tour, distance_matrix):
     total = 0

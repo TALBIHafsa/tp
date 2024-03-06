@@ -51,7 +51,7 @@ else:
 
     if uploaded_file is not None:
         # Read the Excel file
-        df = pd.read_excel(uploaded_file, index_col=0)
+    df = pd.read_excel(uploaded_file, index_col=0, engine='xlrd')
 
         st.subheader("Distance Matrix")
         st.table(df)

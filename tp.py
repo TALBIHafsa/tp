@@ -31,7 +31,7 @@ uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     # Read distance matrix from Excel file
-    df = pd.read_excel(uploaded_file, index_col=0, engine='xlrd')
+    df = pd.read_excel(uploaded_file, index_col=0, engine=['xlrd', 'openpyxl'])
     distance_matrix = df.values.tolist()
 
     st.subheader("Distance Matrix")

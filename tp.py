@@ -1,22 +1,6 @@
 import streamlit as st
 import pandas as pd
 import copy
-import subprocess
-
-# Function to attempt installing the required libraries
-def install_libraries():
-    try:
-        subprocess.run(["pip", "install", "xlrd==2.0.1"])
-        subprocess.run(["pip", "install", "openpyxl==3.1.2"])
-        return True
-    except Exception as e:
-        st.error(f"Error installing libraries: {e}")
-        return False
-
-# Attempt to install the required libraries
-if not install_libraries():
-    st.error("Error: Both 'xlrd' and 'openpyxl' engines are unavailable.")
-    st.stop()
 
 # Function to calculate the total distance of a tour
 def total_distance(tour, distance_matrix):

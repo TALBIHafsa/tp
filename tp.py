@@ -1,12 +1,13 @@
+import streamlit as st
 import copy
 
-# Define the new distance array for 5 points
-new_distance_matrix = [
-    [0, 12, 8, 19, 6],
-    [12, 0, 21, 14, 28],
-    [8, 21, 0, 25, 10],
-    [19, 14, 25, 0, 16],
-    [6, 28, 10, 16, 0]
+# Define the distance array for 5 points
+distance_matrix = [
+    [0, 10, 15, 20, 5],
+    [10, 0, 25, 30, 15],
+    [15, 25, 0, 18, 22],
+    [20, 30, 18, 0, 28],
+    [5, 15, 22, 28, 0]
 ]
 
 # Function to calculate the total distance of a tour
@@ -14,8 +15,8 @@ def total_distance(tour):
     total = 0
     for i in range(len(tour) - 1):
         j = i + 1
-        total += new_distance_matrix[tour[i]][tour[j]]
-    total += new_distance_matrix[tour[0]][tour[-1]]  # Add distance from last to first point
+        total += distance_matrix[tour[i]][tour[j]]
+    total += distance_matrix[tour[0]][tour[-1]]  # Add distance from last to first point
     return total
 
 # Function to implement the 2-opt swap
@@ -26,20 +27,55 @@ def two_opt_swap(tour, i, j):
     new_tour[i:j + 1] = sub_tour
     return new_tour
 
-# Initial tour (can be any order)
-initial_tour = [0, 1, 2, 3, 4]
+# Streamlit app
+st.title("2-Opt Algorithm for Tour Optimization")
 
-# Main optimization loop
-improved = True
-while improved:
-    improved = False
-    for i in range(1, len(initial_tour) - 2):
-        for j in range(i + 1, len(initial_tour) - 1):
-            new_tour = two_opt_swap(initial_tour, i, j)
-            if total_distance(new_tour) < total_distance(initial_tour):
-                initial_tour = new_tour
-                improved = True
+st.subheader("Distance Matrix")
+st.table(distance_matrix)
 
-# Print the optimized tour and its total distance
-print("Optimized tour:", initial_tour)
-print("Total distance:", total_distance(initial_tour))
+# Sidebar to input initial tour
+initial_tour_input = st.sidebar.text_input(
+    "Write Initial Tour (Separate by spaces):", key="initial_tour"
+)
+
+# Combine and validate user input (if provided)
+if initial_tour_input:
+    try:
+        # Validate input format (numbers separated by spaces)
+        initial_tour = list(map(int, initial_tour_input.split()))
+        if len(initial_tour) != len(distance_matrix):
+            raise ValueError("Invalid input: Number of values must match number of points.")
+    except ValueError as e:
+        st.error(f"Error: {e}")
+        initial_tour = []  # Reset invalid input
+else:
+    initial_tour = []  # Empty tour if no input
+
+if initial_tour:  # Display initial tour only if provided
+    st.subheader("Initial Tour")
+    st.write(" ".join(map(str, initial_tour)))
+
+# Run button to trigger optimization
+if st.button("Optimize Tour"):
+    # Prioritize user-provided initial tour (if valid)
+    if initial_tour:
+        initial_tour = [i for i in initial_tour]  # Ensure list type
+    else:
+        initial_tour = [i for i in range(len(distance_matrix))]  # Default initial tour
+
+    # Main optimization loop
+    improved = True
+    while improved:
+        improved = False
+        for i in range(1, len(initial_tour) - 2):
+            for j in range(i + 1, len(initial_tour) - 1):
+                new_tour = two_opt_swap(initial_tour, i, j)
+                if total_distance(new_tour) < total_distance(initial_tour):
+                    initial_tour = new_tour
+                    improved = True
+
+    # Display results
+    st.subheader("Optimized Tour")
+    st.write(" ".join(map(str, initial_tour)))
+    st.subheader("Total Distance")
+    st.write(total_distance(initial_tour))
